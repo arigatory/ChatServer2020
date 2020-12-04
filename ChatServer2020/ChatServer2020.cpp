@@ -1,5 +1,7 @@
 #include <uwebsockets/App.h>
 #include <iostream>
+#include <regex>
+
 using namespace std;
 
 
@@ -17,6 +19,7 @@ struct UserConnection
 int main()
 {
     int port = 8888;
+    
     unsigned long latest_user_id = 10;
     uWS::App().ws<UserConnection>("/*", {
         .open = [&latest_user_id](auto * ws) {
@@ -25,8 +28,11 @@ int main()
             cout << "New user connected ID =  << " << data->user_id << endl;
         },
         .message = [](auto* ws, std::string_view message, uWS::OpCode opCode) {
+            regex SET_NAME("SET_NAME=.*");
+            regex MESSAGE_TO("MESSAGE_TO=\d+,.*");      
             cout << "New message received = " << message << endl;
-            int position = message.find("SET_NAME=");
+            smatch match_result;
+            regex_match(string(message),match_result, SET_NAME);
         }
         }).listen(port, [port](auto* token) {
             if (token)
