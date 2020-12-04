@@ -26,6 +26,7 @@ int main()
         },
         .message = [](auto* ws, std::string_view message, uWS::OpCode opCode) {
             cout << "New message received = " << message << endl;
+            int position = message.find("SET_NAME=");
         }
         }).listen(port, [port](auto* token) {
             if (token)
