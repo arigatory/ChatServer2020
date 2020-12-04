@@ -25,14 +25,30 @@ int main()
         .open = [&latest_user_id](auto * ws) {
             UserConnection* data = (UserConnection*) ws->getUserData();
             data->user_id = latest_user_id++;
+            data->name = "UNNAMED";
             cout << "New user connected ID =  << " << data->user_id << endl;
+            ws->subscribe("broadcast");
+            ws->subscribe("user#" + data->user_id);
         },
         .message = [](auto* ws, std::string_view message, uWS::OpCode opCode) {
-            regex SET_NAME("SET_NAME=.*");
-            regex MESSAGE_TO("MESSAGE_TO=\d+,.*");      
+            string SET_NAME("SET_NAME=");
+            string MESSAGE_TO("MESSAGE_TO=");
+            UserConnection* data = (UserConnection*)ws->getUserData();
             cout << "New message received = " << message << endl;
-            smatch match_result;
-            regex_match(string(message),match_result, SET_NAME);
+            if (message.find(SET_NAME)==0)
+            {
+                cout << "User sets their name" << endl;
+                data->name = message.substr(SET_NAME.length());
+            }
+            if (message.find("MESSAGE_TO=") == 0)
+            {
+                cout << "User sends private message" << endl;
+                auto rest = message.substr(MESSAGE_TO.length());
+                int comma_position = rest.find(",");
+                auto ID = rest.substr(0, comma_position);
+                auto text = rest.substr(comma_position+1);
+                ws->publish("user#" + string(ID), text);
+            }
         }
         }).listen(port, [port](auto* token) {
             if (token)
