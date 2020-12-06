@@ -16,9 +16,13 @@ struct UserConnection
     unsigned long user_id;
 };
 
+// Client => Server
 // SET_NAME=Mike
 // MESSAGE_TO=11,Hello to you, mr Ivan
 // MESSAGE_TO=10,Hello to you, dear Mile
+
+
+// Server => Client
 // NEW_USER=19,Mike
 
 
@@ -39,6 +43,12 @@ bool good_name(string name)
 //TASK4
 bool exist_id(unsigned long latest_id, unsigned long id) {
     return (id < latest_id) and (id >= FIRST_ID) or (id == BOT_ID);
+}
+
+void newUserConnected(uWS::WebSocket<false,true>* ws, string name ,unsigned long user_id)
+{
+    string_view message("NEW_USER" + to_string(user_id) + "," + name);
+    ws->publish("broadcast", message);
 }
 
 
